@@ -259,3 +259,39 @@ Feature: sharing
       | 2      | welt    |
     Then the HTTP status code should be "403"
     And as "Alice" file "/FOLDER/myfile.txt" should not exist
+
+  Scenario Outline: Sharer can download file uploaded with read/write permission by sharee to a shared folder
+    Given using <dav-path> DAV path
+    And user "Brian" has been created with default attributes and without skeleton files
+    And user "Alice" has created a share with settings
+      | path        | FOLDER |
+      | shareType   | user   |
+      | permissions | change |
+      | shareWith   | Brian  |
+    And user "Brian" has accepted share "/FOLDER" offered by user "Alice"
+    And user "Brian" has uploaded file with content "some content" to "/Shares/FOLDER/textFile.txt"
+    When user "Alice" downloads file "/FOLDER/textFile.txt" using the WebDAV API
+    Then the HTTP status code should be "200"
+    And the downloaded content should be "ownCloud test text file 0"
+    Examples:
+      | dav-path |
+      | old      |
+      | new      |
+
+  Scenario Outline: Sharer can download file uploaded with upload-only permission by sharee to a shared folder
+    Given using <dav-path> DAV path
+    And user "Brian" has been created with default attributes and without skeleton files
+    And user "Alice" has created a share with settings
+      | path        | FOLDER |
+      | shareType   | user   |
+      | permissions | create |
+      | shareWith   | Brian  |
+    And user "Brian" has accepted share "/FOLDER" offered by user "Alice"
+    And user "Brian" has uploaded file with content "some content" to "/Shares/FOLDER/textFile.txt"
+    When user "Alice" downloads file "/FOLDER/textFile.txt" using the WebDAV API
+    Then the HTTP status code should be "200"
+    And the downloaded content should be "some content"
+    Examples:
+      | dav-path |
+      | old      |
+      | new      |
